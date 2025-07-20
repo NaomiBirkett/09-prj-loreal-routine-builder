@@ -43,6 +43,24 @@ async function loadProducts() {
   return data.products;
 }
 
+/* Load selected products from localStorage */
+function loadSelectedProducts() {
+  const savedProducts = localStorage.getItem("selectedProducts");
+  if (savedProducts) {
+    const parsedProducts = JSON.parse(savedProducts);
+    parsedProducts.forEach((product) => {
+      selectedProducts.set(product.name, product);
+    });
+    updateSelectedProductsList();
+  }
+}
+
+/* Save selected products to localStorage */
+function saveSelectedProducts() {
+  const productsArray = Array.from(selectedProducts.values());
+  localStorage.setItem("selectedProducts", JSON.stringify(productsArray));
+}
+
 /* Display product cards */
 function displayProducts(products) {
   productsContainer.innerHTML = "";
@@ -77,6 +95,7 @@ function displayProducts(products) {
         button.textContent = "Remove"; // Change button text to "Remove"
       }
       updateSelectedProductsList();
+      saveSelectedProducts(); // Save changes to localStorage
     });
 
     // Add event listener for the "info" button
@@ -127,7 +146,23 @@ function updateSelectedProductsList() {
         <h3>${product.name}</h3>
         <p>${product.brand}</p>
       </div>
+      <div class="product-overlay">
+        <button class="info-btn" data-name="${product.name}">Info</button>
+        <button class="remove-btn" data-name="${product.name}">Remove</button>
+      </div>
     `;
+
+    // Add event listener for the "info" button
+    item.querySelector(".info-btn").addEventListener("click", () => {
+      openProductModal(product);
+    });
+
+    // Add event listener for the "remove" button
+    item.querySelector(".remove-btn").addEventListener("click", () => {
+      selectedProducts.delete(product.name); // Remove product from the list
+      updateSelectedProductsList(); // Update the displayed list
+      saveSelectedProducts(); // Save changes to localStorage
+    });
 
     selectedProductsList.appendChild(item);
   });
@@ -229,3 +264,8 @@ async function sendChatToAI() {
     chatWindow.innerHTML += `<div class="assistant-message"><em>Network error: ${err.message}</em></div>`;
   }
 }
+
+// Load selected products on page load
+window.addEventListener("load", () => {
+  loadSelectedProducts();
+});
